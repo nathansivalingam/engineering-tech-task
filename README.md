@@ -1,108 +1,51 @@
-# Bright OS – Health Data API
+## Instructions (Local Environment)
 
-## Setup Instructions
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-```bash
-gcloud auth application-default login
-gcloud config set project <YOUR_PROJECT_ID>
-```
-
-```bash
-export API_KEY=dev-key
-```
-
-```bash
-python -m uvicorn main:app --reload
-```
-
----
-
-## Deployment Instructions for Cloud Run
-
-```bash
+### Build
 docker build -t brightos-tech-task .
-```
 
-```bash
-docker run --rm -p 8080:8080 -e API_KEY=dev-key brightos-tech-task
-```
+### Deploy
+docker run --rm -p 8082:8080 -e API_KEY=dev-key brightos-tech-task
 
-```bash
-gcloud builds submit --tag gcr.io/<PROJECT_ID>/health-api
-```
+Select: http://localhost:8082/docs
 
-```bash
-gcloud run deploy health-api --image gcr.io/<PROJECT_ID>/health-api
-```
+### Test
 
----
-
-## Example API Requests
-
-### Health Check
-
-```bash
-curl http://127.0.0.1:8000/health
-```
-
-```json
-{ "status": "ok" }
-```
-
----
-
-### Add Health Data
-
-```bash
-curl -X POST "http://127.0.0.1:8000/users/u1/health-data" \
-  -H "X-API-Key: dev-key" \
+#### Feature 1: User Data Ingestion (POST)
+curl -X POST "http://localhost:8082/users/test-user/health-data" \
   -H "Content-Type: application/json" \
-  -d '{
-    "timestamp": "2026-01-08T08:30:00Z",
-    "steps": 1200,
-    "calories": 450,
-    "sleepHours": 7.5
-  }'
-```
+  -H "x-api-key: dev-key" \
+  -d '{"timestamp":"2026-01-16T00:00:00Z","steps":1234,"calories":56.7,"sleepHours":7.5}'
 
----
+#### Feature 2: User Data Retrieval (GET)
+curl "http://localhost:8082/users/test-user/health-data?start=15-01-2026&end=16-01-2026" \
+  -H "x-api-key: dev-key"
 
-### Get Health Data
+#### Feature 3: Basic Aggregation (GET)
+curl "http://localhost:8082/users/test-user/summary?start=15-01-2026&end=16-01-2026" \
+  -H "x-api-key: dev-key"
 
-```bash
-curl -H "X-API-Key: dev-key" \
-"http://127.0.0.1:8000/users/u1/health-data?start=08-01-2026&end=10-01-2026"
-```
 
----
+## Instructions (Cloud Run Environment)
 
-### Get Summary
+### Deploy
+gcloud run deploy brightos-tech-task \
+  --source . \
+  --allow-unauthenticated \
+  --set-env-vars API_KEY=dev-key \
+  --region australia-southeast1
 
-```bash
-curl -H "X-API-Key: dev-key" \
-"http://127.0.0.1:8000/users/u1/summary?start=08-01-2026&end=10-01-2026"
-```
+### Test
 
-```json
-{
-  "totalSteps": 9200,
-  "averageCalories": 583.33,
-  "averageSleepHours": 7.17,
-  "count": 3
-}
-```
+#### Feature 1: User Data Ingestion (POST)
+curl -X POST "https://brightos-tech-task-50151081562.australia-southeast1.run.app/users/test-user/health-data" \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: dev-key" \
+  -d '{"timestamp":"2026-01-16T00:00:00Z","steps":1234,"calories":56.7,"sleepHours":7.5}'
 
----
+#### Feature 2: User Data Retrieval (GET)
+curl "https://brightos-tech-task-50151081562.australia-southeast1.run.app/users/test-user/health-data?start=15-01-2026&end=16-01-2026" \
+  -H "x-api-key: dev-key"
 
-## Limitations
-
-```text
-Cloud Run deployment requires a billing-enabled Google Cloud project.
-Caching, rate limiting, and automated tests are not implemented.
-```
+#### Feature 3: Basic Aggregation (GET)
+curl "https://brightos-tech-task-50151081562.australia-southeast1.run.app/users/test-user/summary?start=15-01-2026&end=16-01-2026" \
+  -H "x-api-key: dev-key"
