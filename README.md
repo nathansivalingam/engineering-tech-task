@@ -65,7 +65,7 @@ Leave this terminal running.
 Open the API documentation in a browser:
 * `http://localhost:8082/docs`
 
-## 7) Test the API
+## 7) Test the API (In New Terminal)
 
 ### Feature 1: User Data Ingestion (POST)
 ```bash
@@ -123,7 +123,7 @@ gcloud config get-value project
 
 ## 2) Safeguard Check
 
-(Optional) Ensure no conflicting Cloud Run service exists:
+(Optional) Confirm the Cloud Run service exists (or see existing services):
 ```bash
 gcloud run services list --region australia-southeast1
 ```
@@ -136,31 +136,28 @@ gcloud run deploy brightos-tech-task \
   --source . \
   --region australia-southeast1 \
   --allow-unauthenticated \
-  --set-env-vars API_KEY=dev-key
-```
-
-**Notes:**
-* Cloud Run automatically builds the Docker image using Cloud Build
-* The Cloud Run service account provides authentication to Firestore
-* No credentials file is required in Cloud Run
-
-After deployment, note the service URL returned, e.g.:
-```
-https://brightos-tech-task-50151081562.australia-southeast1.run.app
+  --set-env-vars API_KEY=dev-key,GOOGLE_CLOUD_PROJECT=brightos-tech-task
 ```
 
 ## 4) Verify Deployment
 
-Open the API documentation in a browser:
+Fetch the deployed service URL:
+```bash
+URL=$(gcloud run services describe brightos-tech-task --region australia-southeast1 --format="value(status.url)")
+echo "$URL"
 ```
-https://brightos-tech-task-50151081562.australia-southeast1.run.app/docs
+
+Open the API documentation in a browser:
+```bash
+echo "$URL/docs"
 ```
 
 ## 5) Test the API
 
 ### Feature 1: User Data Ingestion (POST)
 ```bash
-curl -X POST "https://brightos-tech-task-50151081562.australia-southeast1.run.app/users/test-user/health-data" \
+URL=$(gcloud run services describe brightos-tech-task --region australia-southeast1 --format="value(status.url)")
+curl -i -X POST "$URL/users/test-user/health-data" \
   -H "Content-Type: application/json" \
   -H "x-api-key: dev-key" \
   -d '{"timestamp":"2026-01-16T00:00:00Z","steps":1234,"calories":56.7,"sleepHours":7.5}'
@@ -173,12 +170,14 @@ Expected result:
 
 ### Feature 2: User Data Retrieval (GET)
 ```bash
-curl "https://brightos-tech-task-50151081562.australia-southeast1.run.app/users/test-user/health-data?start=15-01-2026&end=16-01-2026" \
+URL=$(gcloud run services describe brightos-tech-task --region australia-southeast1 --format="value(status.url)")
+curl "$URL/users/test-user/health-data?start=15-01-2026&end=16-01-2026" \
   -H "x-api-key: dev-key"
 ```
 
 ### Feature 3: Basic Aggregation (GET)
 ```bash
-curl "https://brightos-tech-task-50151081562.australia-southeast1.run.app/users/test-user/summary?start=15-01-2026&end=16-01-2026" \
+URL=$(gcloud run services describe brightos-tech-task --region australia-southeast1 --format="value(status.url)")
+curl "$URL/users/test-user/summary?start=15-01-2026&end=16-01-2026" \
   -H "x-api-key: dev-key"
 ```
