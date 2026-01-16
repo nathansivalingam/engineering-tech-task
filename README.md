@@ -1,4 +1,5 @@
 # Local Environment Instructions
+
 ## 0) Prerequisites Check
 ```bash
 docker --version
@@ -59,14 +60,14 @@ docker run --rm -p 8082:8080 \
 
 Leave this terminal running.
 
-## 6) Open Swagger Docs
+## 6) Verify Deployment
 
-In a browser:
+Open the API documentation in a browser:
 * `http://localhost:8082/docs`
 
-## 7) Run the Test Calls (New Terminal)
+## 7) Test the API
 
-### Feature 1: POST Ingest
+### Feature 1: User Data Ingestion (POST)
 ```bash
 curl -sS -X POST "http://localhost:8082/users/test-user/health-data" \
   -H "Content-Type: application/json" \
@@ -74,15 +75,18 @@ curl -sS -X POST "http://localhost:8082/users/test-user/health-data" \
   -d '{"timestamp":"2026-01-16T00:00:00Z","steps":1234,"calories":56.7,"sleepHours":7.5}'
 ```
 
-Expected: JSON like `{"status":"ok","id":"..."}`
+Expected result:
+```json
+{ "status": "ok", "id": "..." }
+```
 
-### Feature 2: GET Retrieve
+### Feature 2: User Data Retrieval (GET)
 ```bash
 curl -sS "http://localhost:8082/users/test-user/health-data?start=15-01-2026&end=16-01-2026" \
   -H "x-api-key: dev-key"
 ```
 
-### Feature 3: GET Summary
+### Feature 3: Basic Aggregation (GET)
 ```bash
 curl -sS "http://localhost:8082/users/test-user/summary?start=15-01-2026&end=16-01-2026" \
   -H "x-api-key: dev-key"
@@ -95,13 +99,18 @@ Go back to the Docker terminal and press:
 Ctrl + C
 ```
 
+---
+
 # Cloud Run Environment Instructions
-## Prerequisites
+
+## 0) Prerequisites Check
 
 * Google Cloud SDK (`gcloud`) installed
 * Logged in to Google Cloud
 * A Google Cloud project selected
 * Firestore enabled in the project
+
+## 1) Set Up Google Cloud Authentication
 ```bash
 gcloud auth login
 gcloud config set project brightos-tech-task
@@ -112,14 +121,14 @@ Verify project:
 gcloud config get-value project
 ```
 
-## Safeguard
+## 2) Safeguard Check
 
 (Optional) Ensure no conflicting Cloud Run service exists:
 ```bash
 gcloud run services list --region australia-southeast1
 ```
 
-## Build & Deploy
+## 3) Build & Deploy to Cloud Run
 
 Build the container and deploy directly to Cloud Run from source:
 ```bash
@@ -140,14 +149,14 @@ After deployment, note the service URL returned, e.g.:
 https://brightos-tech-task-50151081562.australia-southeast1.run.app
 ```
 
-## Verify Deployment
+## 4) Verify Deployment
 
 Open the API documentation in a browser:
 ```
 https://brightos-tech-task-50151081562.australia-southeast1.run.app/docs
 ```
 
-## Test
+## 5) Test the API
 
 ### Feature 1: User Data Ingestion (POST)
 ```bash
