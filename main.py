@@ -16,9 +16,11 @@ def require_api_key(x_api_key: str = Header(default="")) -> None:
 
 
 # Firestore Connection
-def get_db() -> firestore.Client:
-    return firestore.Client()
-
+def get_db():
+    project = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("GCLOUD_PROJECT")
+    if not project:
+        raise RuntimeError("Missing GOOGLE_CLOUD_PROJECT (or GCLOUD_PROJECT) env var")
+    return firestore.Client(project=project)
 
 # Model Validates Payload Structure and Data Types
 class HealthDataIn(BaseModel):
